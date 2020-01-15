@@ -1,0 +1,163 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "KG DevOps interview CF stack",
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "0b7586e6-ce5b-4be3-9b8f-9dce4365904d": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 250,
+                    "y": 80
+                },
+                "z": 0,
+                "embeds": []
+            },
+            "38afaf74-9125-4c50-9ea7-199bcd9e9f75": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": -190,
+                    "y": 80
+                },
+                "z": 0,
+                "embeds": []
+            },
+            "b9a78ce6-15dc-4466-b0b4-f5236e36668f": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": -20,
+                    "y": 80
+                },
+                "z": 0,
+                "embeds": [],
+                "isassociatedwith": [
+                    "38afaf74-9125-4c50-9ea7-199bcd9e9f75"
+                ]
+            },
+            "ba64fcee-21e5-4dcc-9c65-89f2c8101ff6": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 90,
+                    "y": 80
+                },
+                "z": 0,
+                "embeds": []
+            }
+        }
+    },
+    "Resources": {
+        "InterviewEC2Instance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType": "t2.nano",
+                "ImageId": "ami-0020c9e628f25ae5a",
+                "SourceDestCheck": "false",
+                "SubnetId": "subnet-01d936b29eb58dd1c",
+                "KeyName": "CloudFormation",
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash -ex\n",
+                                "yum install httpd -y\n",
+                                "yum install update -y\n"
+                            ]
+                        ]
+                    }
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Abdullah Khan"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "0b7586e6-ce5b-4be3-9b8f-9dce4365904d"
+                }
+            }
+        },
+        "KGDevOpsALB": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Type": "application",
+                "Scheme": "internet-facing",
+                "Subnets" : [ {"Id":"subnet-01d936b29eb58dd1c"}, {"Id":"subnet-07332aefeb25ead38"} ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "38afaf74-9125-4c50-9ea7-199bcd9e9f75"
+                }
+            }
+        },
+        "HTTPlistener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "LoadBalancerArn": "KGDevOpsALB",
+                "Port": "80",
+                "Protocol": "HTTP",
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "KGDevOpsALBTargetGroup"
+                        }
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "b9a78ce6-15dc-4466-b0b4-f5236e36668f"
+                }
+            }
+        },
+        "KGDevOpsALBTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "Name": "MyTarget",
+                "Port": "80",
+                "Protocol": "HTTP",
+                "TargetType": "instance",
+                "VpcId": "vpc-059bc8a47c0538210",
+                "HealthCheckPath": "/",
+                "HealthCheckPort": "80",
+                "HealthCheckProtocol": "HTTP",
+                "Targets": [
+                    {
+                        "Id": {
+                            "Ref": "InterviewEC2Instance"
+                        },
+                        "Port": "80"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "ba64fcee-21e5-4dcc-9c65-89f2c8101ff6"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "InstanceID": {
+            "Description": "The Instance ID",
+            "Value": {
+                "Ref": "InterviewEC2Instance"
+            }
+        }
+    },
+    "Parameters": {}
+}
